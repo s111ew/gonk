@@ -2,17 +2,28 @@ package terminal
 
 import (
 	"os"
+	"syscall"
+	"unsafe"
 
 	"golang.org/x/sys/unix"
 )
 
 // save a reference to the user's terminal settings
 // so we can restore them when we exit the program
-type Config struct {
-	origTermios *unix.Termios
+type TermConfig struct {
+	OrigTermios *unix.Termios
+	ScreenRows  int
+	ScreenCols  int
 }
 
-var config Config
+type winsize struct {
+	Row    uint16
+	Col    uint16
+	Xpixel uint16
+	Ypixel uint16
+}
+
+var Config TermConfig
 
 // disable ECHO mode in the terminal
 // (user can't see what is typed in the terminal)
@@ -27,11 +38,11 @@ func EnableRawMode() error {
 		return err
 	}
 
-	config.origTermios = termios
+	Config.OrigTermios = termios
 
 	// clear settings for 'echo', 'canonical' and treat ctrl
 	// chars as regular char inputs
-	raw := *termios
+	raw := Config.OrigTermios
 	raw.Iflag &^= unix.BRKINT | unix.ICRNL | unix.INPCK | unix.ISTRIP | unix.IXON
 	raw.Oflag &^= unix.OPOST
 	raw.Cflag |= unix.CS8
@@ -40,7 +51,7 @@ func EnableRawMode() error {
 	raw.Cc[unix.VTIME] = 0
 
 	// flush any pending input before applying changes
-	err = unix.IoctlSetTermios(fd, unix.TIOCSETAF, &raw)
+	err = unix.IoctlSetTermios(fd, unix.TIOCSETAF, raw)
 	if err != nil {
 		return err
 	}
@@ -51,6 +62,26 @@ func EnableRawMode() error {
 // re-enable ECHO mode in the terminal
 func DisableRawMode() error {
 	fd := int(os.Stdin.Fd())
-	err := unix.IoctlSetTermios(fd, unix.TIOCSETAF, config.origTermios)
+	err := unix.IoctlSetTermios(fd, unix.TIOCSETAF, Config.OrigTermios)
 	return err
+}
+
+// fetch the user's terminal size (rows , cols) and add to the
+// global config struct
+func GetWindowSize(config *TermConfig) error {
+	ws := &winsize{}
+
+	_, _, errno := syscall.Syscall(
+		syscall.SYS_IOCTL,
+		uintptr(syscall.Stdout),
+		uintptr(syscall.TIOCGWINSZ),
+		uintptr(unsafe.Pointer(ws)),
+	)
+	if errno != 0 || ws.Col == 0 {
+		return errno
+	}
+
+	config.ScreenRows = int(ws.Row)
+	config.ScreenCols = int(ws.Col)
+	return nil
 }

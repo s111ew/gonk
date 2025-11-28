@@ -18,6 +18,8 @@ func main() {
 		return
 	}
 
+	editor.InitEditor()
+
 	// disable 'raw' mode in user's terminal when program exits
 	defer func() {
 		if err := terminal.DisableRawMode(); err != nil {

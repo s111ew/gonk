@@ -12,6 +12,10 @@ import (
 // function that the program should quit
 var ErrQuit = errors.New("quit")
 
+func InitEditor() {
+	terminal.GetWindowSize(&terminal.Config)
+}
+
 // wait for user key press and return it
 func ReadKey() (byte, error) {
 	var buf [1]byte
@@ -62,7 +66,7 @@ func RefreshScreen() {
 // draw rows on user terminal
 func drawRows() {
 	// arbitrary 24 rows
-	for y := 0; y < 24; y++ {
+	for y := 0; y < terminal.Config.ScreenRows; y++ {
 		os.Stdout.Write([]byte("~\r\n"))
 	}
 }
