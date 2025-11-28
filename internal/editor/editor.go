@@ -8,8 +8,27 @@ import (
 	"github.com/s111ew/gonk/internal/terminal"
 )
 
+// package level unique error for signalling to main
+// function that the program should quit
 var ErrQuit = errors.New("quit")
 
+// wait for user key press and return it
+func ReadKey() (byte, error) {
+	var buf [1]byte
+
+	for {
+		n, err := os.Stdin.Read(buf[:])
+		if err != nil {
+			return 0, err
+		}
+
+		if n == 1 {
+			return buf[0], nil
+		}
+	}
+}
+
+// evaluate pressed key
 func ProcessKeyPress() error {
 	c, err := ReadKey()
 	if err != nil {
@@ -28,19 +47,4 @@ func ProcessKeyPress() error {
 	}
 
 	return nil
-}
-
-func ReadKey() (byte, error) {
-	var buf [1]byte
-
-	for {
-		n, err := os.Stdin.Read(buf[:])
-		if err != nil {
-			return 0, err
-		}
-
-		if n == 1 {
-			return buf[0], nil
-		}
-	}
 }
