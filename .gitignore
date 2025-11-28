@@ -1,0 +1,8 @@
+# os
+*.DS_Store
+
+#ide
+.vscode/
+
+# env file
+.env

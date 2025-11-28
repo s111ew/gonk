@@ -10,13 +10,13 @@ import (
 func main() {
 	err := terminalconfig.EnableRawMode()
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Fprintln(os.Stderr, "Failed to activate no-echo mode:", err)
 		return
 	}
 
 	defer func() {
 		if err := terminalconfig.DisableRawMode(); err != nil {
-			fmt.Fprintln(os.Stderr, "Failed to restore terminal:", err)
+			fmt.Fprintln(os.Stderr, "Failed to deactivate no-echo mode:", err)
 		}
 	}()
 
