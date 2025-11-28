@@ -1,9 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"log"
 	"os"
 
+	"github.com/s111ew/gonk/internal/editor"
 	"github.com/s111ew/gonk/internal/terminal"
 )
 
@@ -20,23 +23,14 @@ func main() {
 		}
 	}()
 
-	var buf [1]byte
-
 	for {
-		_, err := os.Stdin.Read(buf[:])
-		c := buf[0]
-		// exit with "q"
-		if err != nil || c == terminal.CtrlKey('q') {
-			break
-		}
-
-		// print new line for enter
-		if c == 13 {
-			fmt.Print("\r\n")
-		} else if terminal.IsCtrl(c) {
-			fmt.Printf("%d\r\n", c)
-		} else {
-			fmt.Printf("%d (%c)", c, c)
+		err := editor.ProcessKeyPress()
+		if err != nil {
+			if errors.Is(err, editor.ErrQuit) {
+				fmt.Println("exiting...")
+				return
+			}
+			log.Fatal(err)
 		}
 	}
 }
