@@ -48,3 +48,9 @@ func ProcessKeyPress() error {
 
 	return nil
 }
+
+// evaluate pressed key
+func RefreshScreen() {
+	os.Stdout.Write([]byte("\x1b[2J"))
+	os.Stdout.Write([]byte("\x1b[H"))
+}

@@ -27,6 +27,7 @@ func main() {
 
 	for {
 		// listen for key press
+		editor.RefreshScreen()
 		err := editor.ProcessKeyPress()
 		if err != nil {
 			// check for ctrl(q) press and exit program
