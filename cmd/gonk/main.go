@@ -26,5 +26,6 @@ func main() {
 		if err != nil || n == 0 {
 			break
 		}
+		fmt.Print(string(buf[0]))
 	}
 }
