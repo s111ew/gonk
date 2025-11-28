@@ -49,8 +49,19 @@ func ProcessKeyPress() error {
 	return nil
 }
 
-// evaluate pressed key
+// refresh user terminal screen
 func RefreshScreen() {
 	os.Stdout.Write([]byte("\x1b[2J"))
 	os.Stdout.Write([]byte("\x1b[H"))
+
+	drawRows()
+
+	os.Stdout.Write([]byte("\x1b[H"))
+}
+
+// draw rows on user terminal
+func drawRows() {
+	for y := 0; y < 24; y++ {
+		os.Stdout.Write([]byte("~\r\n"))
+	}
 }

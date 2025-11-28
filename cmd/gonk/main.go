@@ -30,6 +30,7 @@ func main() {
 		editor.RefreshScreen()
 		err := editor.ProcessKeyPress()
 		if err != nil {
+			editor.RefreshScreen()
 			// check for ctrl(q) press and exit program
 			if errors.Is(err, editor.ErrQuit) {
 				fmt.Println("exiting...")
