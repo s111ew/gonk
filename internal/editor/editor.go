@@ -61,6 +61,7 @@ func RefreshScreen() {
 
 // draw rows on user terminal
 func drawRows() {
+	// arbitrary 24 rows
 	for y := 0; y < 24; y++ {
 		os.Stdout.Write([]byte("~\r\n"))
 	}

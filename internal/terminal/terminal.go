@@ -8,7 +8,11 @@ import (
 
 // save a reference to the user's terminal settings
 // so we can restore them when we exit the program
-var origTermios *unix.Termios
+type Config struct {
+	origTermios *unix.Termios
+}
+
+var config Config
 
 // disable ECHO mode in the terminal
 // (user can't see what is typed in the terminal)
@@ -23,7 +27,7 @@ func EnableRawMode() error {
 		return err
 	}
 
-	origTermios = termios
+	config.origTermios = termios
 
 	// clear settings for 'echo', 'canonical' and treat ctrl
 	// chars as regular char inputs
@@ -47,6 +51,6 @@ func EnableRawMode() error {
 // re-enable ECHO mode in the terminal
 func DisableRawMode() error {
 	fd := int(os.Stdin.Fd())
-	err := unix.IoctlSetTermios(fd, unix.TIOCSETAF, origTermios)
+	err := unix.IoctlSetTermios(fd, unix.TIOCSETAF, config.origTermios)
 	return err
 }
