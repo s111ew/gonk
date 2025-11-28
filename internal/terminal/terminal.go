@@ -28,8 +28,9 @@ func EnableRawMode() error {
 	// clear settings for 'echo', 'canonical' and treat ctrl
 	// chars as regular char inputs
 	raw := *termios
-	raw.Iflag &^= unix.ICRNL | unix.IXON
+	raw.Iflag &^= unix.BRKINT | unix.ICRNL | unix.INPCK | unix.ISTRIP | unix.IXON
 	raw.Oflag &^= unix.OPOST
+	raw.Cflag |= unix.CS8
 	raw.Lflag &^= unix.ECHO | unix.ICANON | unix.IEXTEN | unix.ISIG
 
 	// flush any pending input before applying changes
