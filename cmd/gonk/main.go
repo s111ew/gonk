@@ -24,16 +24,19 @@ func main() {
 
 	for {
 		_, err := os.Stdin.Read(buf[:])
+		c := buf[0]
 		// exit with "q"
-		if err != nil || buf[0] == 113 {
+		if err != nil || c == terminal.CtrlKey('q') {
 			break
 		}
 
 		// print new line for enter
-		if buf[0] == 13 {
+		if c == 13 {
 			fmt.Print("\r\n")
+		} else if terminal.IsCtrl(c) {
+			fmt.Printf("%d\r\n", c)
 		} else {
-			fmt.Print(string(buf[0]))
+			fmt.Printf("%d (%c)", c, c)
 		}
 	}
 }

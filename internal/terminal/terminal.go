@@ -32,6 +32,8 @@ func EnableRawMode() error {
 	raw.Oflag &^= unix.OPOST
 	raw.Cflag |= unix.CS8
 	raw.Lflag &^= unix.ECHO | unix.ICANON | unix.IEXTEN | unix.ISIG
+	raw.Cc[unix.VMIN] = 0
+	raw.Cc[unix.VTIME] = 1
 
 	// flush any pending input before applying changes
 	err = unix.IoctlSetTermios(fd, unix.TIOCSETAF, &raw)
