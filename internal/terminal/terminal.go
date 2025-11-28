@@ -25,9 +25,12 @@ func EnableRawMode() error {
 
 	origTermios = termios
 
-	// clear the setting for 'terminal echo' and 'canonical'
+	// clear settings for 'echo', 'canonical' and treat ctrl
+	// chars as regular char inputs
 	raw := *termios
-	raw.Lflag &^= unix.ECHO | unix.ICANON
+	raw.Iflag &^= unix.ICRNL | unix.IXON
+	raw.Oflag &^= unix.OPOST
+	raw.Lflag &^= unix.ECHO | unix.ICANON | unix.IEXTEN | unix.ISIG
 
 	// flush any pending input before applying changes
 	err = unix.IoctlSetTermios(fd, unix.TIOCSETAF, &raw)

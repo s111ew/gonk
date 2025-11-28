@@ -21,11 +21,19 @@ func main() {
 	}()
 
 	var buf [1]byte
+
 	for {
-		n, err := os.Stdin.Read(buf[:])
-		if err != nil || n == 0 {
+		_, err := os.Stdin.Read(buf[:])
+		// exit with "q"
+		if err != nil || buf[0] == 113 {
 			break
 		}
-		fmt.Print(string(buf[0]))
+
+		// print new line for enter
+		if buf[0] == 13 {
+			fmt.Print("\r\n")
+		} else {
+			fmt.Print(string(buf[0]))
+		}
 	}
 }
