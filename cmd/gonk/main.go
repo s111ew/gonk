@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"os"
 
-	terminalconfig "github.com/s111ew/gonk/terminal_config"
+	"github.com/s111ew/gonk/internal/terminal"
 )
 
 func main() {
-	err := terminalconfig.EnableRawMode()
+	err := terminal.EnableRawMode()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to activate no-echo mode:", err)
 		return
 	}
 
 	defer func() {
-		if err := terminalconfig.DisableRawMode(); err != nil {
+		if err := terminal.DisableRawMode(); err != nil {
 			fmt.Fprintln(os.Stderr, "Failed to deactivate no-echo mode:", err)
 		}
 	}()

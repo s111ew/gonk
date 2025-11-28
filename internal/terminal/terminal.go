@@ -1,4 +1,4 @@
-package terminalconfig
+package terminal
 
 import (
 	"os"
@@ -25,9 +25,9 @@ func EnableRawMode() error {
 
 	origTermios = termios
 
-	// clear the setting for 'terminal echo'
+	// clear the setting for 'terminal echo' and 'canonical'
 	raw := *termios
-	raw.Lflag &^= unix.ECHO
+	raw.Lflag &^= unix.ECHO | unix.ICANON
 
 	// flush any pending input before applying changes
 	err = unix.IoctlSetTermios(fd, unix.TIOCSETAF, &raw)
