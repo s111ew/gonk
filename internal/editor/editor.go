@@ -12,6 +12,13 @@ import (
 var WELCOME_MSG string = "Gonk -- "
 var VERSION string = "0.0.1"
 
+const (
+	ARROW_LEFT  = 255
+	ARROW_RIGHT = 254
+	ARROW_UP    = 253
+	ARROW_DOWN  = 252
+)
+
 // package level unique error for signalling to main
 // function that the program should quit
 var ErrQuit = errors.New("quit")
@@ -37,9 +44,46 @@ func ReadKey() (byte, error) {
 			return 0, err
 		}
 
-		if n == 1 {
-			return buf[0], nil
+		if n == 0 {
+			continue
 		}
+
+		if buf[0] == '\x1b' {
+			var seq [3]byte
+
+			n1, err := os.Stdin.Read(seq[:1])
+			if err != nil {
+				return 0, err
+			}
+			if n1 != 1 {
+				return '\x1b', nil
+			}
+
+			n2, err := os.Stdin.Read(seq[1:2])
+			if err != nil {
+				return 0, err
+			}
+			if n2 != 1 {
+				return '\x1b', nil
+			}
+
+			if seq[0] == '[' {
+				switch seq[1] {
+				case 'A':
+					return ARROW_UP, nil
+				case 'B':
+					return ARROW_DOWN, nil
+				case 'C':
+					return ARROW_RIGHT, nil
+				case 'D':
+					return ARROW_LEFT, nil
+				}
+			}
+
+			return '\x1b', nil
+		}
+
+		return buf[0], nil
 	}
 }
 
@@ -56,10 +100,10 @@ func ProcessKeyPress() error {
 	case terminal.CtrlKey('q'):
 		return ErrQuit
 	// move cursor around with 'wasd'
-	case 'w':
-	case 's':
-	case 'a':
-	case 'd':
+	case ARROW_UP:
+	case ARROW_DOWN:
+	case ARROW_LEFT:
+	case ARROW_RIGHT:
 		moveCursor(c)
 	}
 
@@ -105,13 +149,13 @@ func drawRows(buf *strings.Builder) {
 
 func moveCursor(key byte) {
 	switch key {
-	case 'a':
+	case ARROW_LEFT:
 		terminal.Config.CursorX--
-	case 'd':
+	case ARROW_RIGHT:
 		terminal.Config.CursorX++
-	case 'w':
+	case ARROW_UP:
 		terminal.Config.CursorY--
-	case 's':
+	case ARROW_DOWN:
 		terminal.Config.CursorY++
 	}
 }
