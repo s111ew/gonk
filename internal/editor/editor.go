@@ -9,6 +9,9 @@ import (
 	"github.com/s111ew/gonk/internal/terminal"
 )
 
+var WELCOME_MSG string = "Gonk -- "
+var VERSION string = "0.0.1"
+
 // package level unique error for signalling to main
 // function that the program should quit
 var ErrQuit = errors.New("quit")
@@ -63,7 +66,6 @@ func RefreshScreen() {
 	var buf strings.Builder
 
 	buf.WriteString("\x1b[?25l")
-	buf.WriteString("\x1b[2J")
 	buf.WriteString("\x1b[H")
 
 	drawRows(&buf)
@@ -76,9 +78,20 @@ func RefreshScreen() {
 
 // draw rows on user terminal
 func drawRows(buf *strings.Builder) {
+	msg := WELCOME_MSG + VERSION
 	for y := 0; y < terminal.Config.ScreenRows; y++ {
 		buf.WriteString("~")
+		if y == 0 {
+			padding := ((terminal.Config.ScreenCols - len(msg)) / 2) - 1
+			if padding > 0 {
+				for range padding {
+					buf.WriteString(" ")
+				}
+			}
+			buf.WriteString(msg)
+		}
 
+		buf.WriteString("\x1b[K")
 		if y < terminal.Config.ScreenRows-1 {
 			buf.WriteString("\r\n")
 		}
