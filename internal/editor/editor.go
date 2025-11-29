@@ -18,6 +18,9 @@ var ErrQuit = errors.New("quit")
 
 // populate the user terminal config struct with window dimensions
 func InitEditor() error {
+	terminal.Config.CursorX = 0
+	terminal.Config.CursorY = 0
+
 	if err := terminal.GetWindowSize(&terminal.Config); err != nil {
 		return err
 	}
@@ -47,15 +50,17 @@ func ProcessKeyPress() error {
 		return err
 	}
 
-	// exit with "q"
-	if c == terminal.CtrlKey('q') {
+	// evaluate key input
+	switch c {
+	// quit out of input is ctrl + c
+	case terminal.CtrlKey('q'):
 		return ErrQuit
-	} else if c == 13 {
-		fmt.Print("\r\n")
-	} else if terminal.IsCtrl(c) {
-		fmt.Printf("%d\r\n", c)
-	} else {
-		fmt.Printf("%d (%c)", c, c)
+	// move cursor around with 'wasd'
+	case 'w':
+	case 's':
+	case 'a':
+	case 'd':
+		moveCursor(c)
 	}
 
 	return nil
@@ -70,7 +75,7 @@ func RefreshScreen() {
 
 	drawRows(&buf)
 
-	buf.WriteString("\x1b[H")
+	buf.WriteString(fmt.Sprintf("\x1b[%d;%dH", terminal.Config.CursorX+1, terminal.Config.CursorY+1))
 	buf.WriteString("\x1b[?25h")
 
 	os.Stdout.Write([]byte(buf.String()))
@@ -95,5 +100,18 @@ func drawRows(buf *strings.Builder) {
 		if y < terminal.Config.ScreenRows-1 {
 			buf.WriteString("\r\n")
 		}
+	}
+}
+
+func moveCursor(key byte) {
+	switch key {
+	case 'a':
+		terminal.Config.CursorX--
+	case 'd':
+		terminal.Config.CursorX++
+	case 'w':
+		terminal.Config.CursorY--
+	case 's':
+		terminal.Config.CursorY++
 	}
 }

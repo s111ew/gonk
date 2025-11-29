@@ -15,6 +15,8 @@ import (
 // so we can restore them when we exit the program
 type TermConfig struct {
 	OrigTermios *unix.Termios
+	CursorX     int
+	CursorY     int
 	ScreenRows  int
 	ScreenCols  int
 }
