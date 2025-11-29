@@ -1,7 +1,10 @@
 package terminal
 
 import (
+	"fmt"
 	"os"
+	"regexp"
+	"strconv"
 	"syscall"
 	"unsafe"
 
@@ -77,11 +80,40 @@ func GetWindowSize(config *TermConfig) error {
 		uintptr(syscall.TIOCGWINSZ),
 		uintptr(unsafe.Pointer(ws)),
 	)
-	if errno != 0 || ws.Col == 0 {
-		return errno
+
+	if errno == 0 && ws.Col != 0 {
+		config.ScreenRows = int(ws.Row)
+		config.ScreenCols = int(ws.Col)
+	} else {
+		os.Stdout.Write([]byte("\x1b[999C\x1b[999B"))
+		if err := getCursorPosition(config); err != nil {
+			return err
+		}
 	}
 
-	config.ScreenRows = int(ws.Row)
-	config.ScreenCols = int(ws.Col)
+	return nil
+}
+
+func getCursorPosition(config *TermConfig) error {
+	// read response: ESC[n;mR
+	buf := make([]byte, 32)
+	n, err := os.Stdin.Read(buf)
+	if err != nil {
+		return err
+	}
+
+	// parse escape sequence
+	// expecting: "\x1b[24;80R"
+	re := regexp.MustCompile(`\x1b\[(\d+);(\d+)R`)
+	m := re.FindStringSubmatch(string(buf[:n]))
+	if len(m) != 3 {
+		return fmt.Errorf("could not parse cursor position")
+	}
+
+	rows, _ := strconv.Atoi(m[1])
+	cols, _ := strconv.Atoi(m[2])
+	config.ScreenRows = rows
+	config.ScreenCols = cols
+
 	return nil
 }
