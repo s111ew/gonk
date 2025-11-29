@@ -70,6 +70,10 @@ func RefreshScreen() {
 // draw rows on user terminal
 func drawRows() {
 	for y := 0; y < terminal.Config.ScreenRows; y++ {
-		os.Stdout.Write([]byte("~\r\n"))
+		os.Stdout.Write([]byte("~"))
+
+		if y < terminal.Config.ScreenRows-1 {
+			os.Stdout.Write([]byte("\r\n"))
+		}
 	}
 }
