@@ -12,13 +12,16 @@ import (
 
 func main() {
 	// enable 'raw' mode in user's terminal
-	err := terminal.EnableRawMode()
-	if err != nil {
+	if err := terminal.EnableRawMode(); err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to activate no-echo mode:", err)
 		return
 	}
 
-	editor.InitEditor()
+	// intialise user editor configuration
+	if err := editor.InitEditor(); err != nil {
+		fmt.Fprintln(os.Stderr, "Failed to initialise editor:", err)
+		return
+	}
 
 	// disable 'raw' mode in user's terminal when program exits
 	defer func() {

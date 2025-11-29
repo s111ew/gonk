@@ -12,8 +12,12 @@ import (
 // function that the program should quit
 var ErrQuit = errors.New("quit")
 
-func InitEditor() {
-	terminal.GetWindowSize(&terminal.Config)
+// populate the user terminal config struct with window dimensions
+func InitEditor() error {
+	if err := terminal.GetWindowSize(&terminal.Config); err != nil {
+		return err
+	}
+	return nil
 }
 
 // wait for user key press and return it
@@ -65,7 +69,6 @@ func RefreshScreen() {
 
 // draw rows on user terminal
 func drawRows() {
-	// arbitrary 24 rows
 	for y := 0; y < terminal.Config.ScreenRows; y++ {
 		os.Stdout.Write([]byte("~\r\n"))
 	}
