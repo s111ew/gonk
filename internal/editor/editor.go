@@ -62,12 +62,15 @@ func ProcessKeyPress() error {
 func RefreshScreen() {
 	var buf strings.Builder
 
+	buf.WriteString("\x1b[?25l")
 	buf.WriteString("\x1b[2J")
 	buf.WriteString("\x1b[H")
 
 	drawRows(&buf)
 
 	buf.WriteString("\x1b[H")
+	buf.WriteString("\x1b[?25h")
+
 	os.Stdout.Write([]byte(buf.String()))
 }
 
