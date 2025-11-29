@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/s111ew/gonk/internal/terminal"
 )
@@ -59,21 +60,24 @@ func ProcessKeyPress() error {
 
 // refresh user terminal screen
 func RefreshScreen() {
-	os.Stdout.Write([]byte("\x1b[2J"))
-	os.Stdout.Write([]byte("\x1b[H"))
+	var buf strings.Builder
 
-	drawRows()
+	buf.WriteString("\x1b[2J")
+	buf.WriteString("\x1b[H")
 
-	os.Stdout.Write([]byte("\x1b[H"))
+	drawRows(&buf)
+
+	buf.WriteString("\x1b[H")
+	os.Stdout.Write([]byte(buf.String()))
 }
 
 // draw rows on user terminal
-func drawRows() {
+func drawRows(buf *strings.Builder) {
 	for y := 0; y < terminal.Config.ScreenRows; y++ {
-		os.Stdout.Write([]byte("~"))
+		buf.WriteString("~")
 
 		if y < terminal.Config.ScreenRows-1 {
-			os.Stdout.Write([]byte("\r\n"))
+			buf.WriteString("\r\n")
 		}
 	}
 }
