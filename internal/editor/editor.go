@@ -131,6 +131,19 @@ func ProcessKeyPress() error {
 	case terminal.CtrlKey('q'):
 		return ErrQuit
 
+	case PAGE_UP, PAGE_DOWN:
+		// how many times to move up/down
+		n := terminal.Config.ScreenRows
+		// move up/down until at top
+		for n > 0 {
+			if c == PAGE_UP {
+				moveCursor(ARROW_UP)
+			} else {
+				moveCursor(ARROW_DOWN)
+			}
+			n--
+		}
+
 	// move cursor around with arrow keys
 	case ARROW_UP, ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT:
 		moveCursor(c)
