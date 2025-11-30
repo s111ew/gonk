@@ -50,69 +50,71 @@ func ReadKey() (byte, error) {
 			continue
 		}
 
-		if buf[0] == '\x1b' {
-			// escape sequence
-			var seq []byte
-			seq = append(seq, buf[0])
+		// normal single byte key press
+		if buf[0] != '\x1b' {
+			return buf[0], nil
+		}
 
-			// read the next two bytes minimum
-			for i := 0; i < 2; i++ {
-				_, err := os.Stdin.Read(buf[:])
-				if err != nil {
-					return 0, err
-				}
-				seq = append(seq, buf[0])
-			}
+		// ESC sequence starts
+		seq := []byte{'\x1b'}
 
-			// read until letter
-			for {
-				b := seq[len(seq)-1]
-				if (b >= 'A' && b <= 'Z') || (b >= 'a' && b <= 'z') {
-					break
-				}
-				_, err := os.Stdin.Read(buf[:])
-				if err != nil {
-					return 0, err
-				}
-				seq = append(seq, buf[0])
-			}
+		// read next byte (must exist for an escape sequence)
+		_, err = os.Stdin.Read(buf[:])
+		if err != nil {
+			return 0, err
+		}
+		seq = append(seq, buf[0])
 
-			if seq[1] == '[' {
-				if seq[2] >= '0' && seq[2] <= '9' {
-					n, err := os.Stdin.Read(seq)
-					if err != nil {
-						return 0, err
-					}
-					if n != 1 {
-						return '\x1b', nil
-					}
-					if seq[3] == '~' {
-						switch seq[2] {
-						case '5':
-							return PAGE_UP, nil
-						case '6':
-							return PAGE_DOWN, nil
-						}
-					}
-				} else {
-					switch seq[len(seq)-1] {
-					case 'A':
-						return ARROW_UP, nil
-					case 'B':
-						return ARROW_DOWN, nil
-					case 'C':
-						return ARROW_RIGHT, nil
-					case 'D':
-						return ARROW_LEFT, nil
-					}
-				}
-
-			}
-
+		// if not CSI, ignore
+		if seq[1] != '[' {
 			return 0, nil
 		}
 
-		return buf[0], nil
+		// read next byte
+		_, err = os.Stdin.Read(buf[:])
+		if err != nil {
+			return 0, err
+		}
+		seq = append(seq, buf[0])
+
+		// if it's a digit, expect something like "ESC [ 5 ~"
+		if seq[2] >= '0' && seq[2] <= '9' {
+			// read until '~'
+			for {
+				_, err = os.Stdin.Read(buf[:])
+				if err != nil {
+					return 0, err
+				}
+				seq = append(seq, buf[0])
+				if buf[0] == '~' {
+					break
+				}
+			}
+
+			switch seq[2] {
+			case '5':
+				return PAGE_UP, nil
+			case '6':
+				return PAGE_DOWN, nil
+			}
+			return 0, nil
+		}
+
+		// arrow keys
+		last := seq[2]
+
+		switch last {
+		case 'A':
+			return ARROW_UP, nil
+		case 'B':
+			return ARROW_DOWN, nil
+		case 'C':
+			return ARROW_RIGHT, nil
+		case 'D':
+			return ARROW_LEFT, nil
+		}
+
+		return 0, nil
 	}
 }
 
@@ -129,7 +131,7 @@ func ProcessKeyPress() error {
 	case terminal.CtrlKey('q'):
 		return ErrQuit
 
-	// move cursor around with 'wasd'
+	// move cursor around with arrow keys
 	case ARROW_UP, ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT:
 		moveCursor(c)
 	}
