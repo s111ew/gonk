@@ -9,10 +9,10 @@ import (
 	"github.com/s111ew/gonk/internal/terminal"
 )
 
-var WELCOME_MSG string = "Gonk -- "
-var VERSION string = "0.0.1"
-
 const (
+	WELCOME_MSG = "Gonk -- "
+	VERSION     = "0.0.1"
+
 	ARROW_LEFT  = 255
 	ARROW_RIGHT = 254
 	ARROW_UP    = 253
