@@ -21,6 +21,7 @@ const (
 	PAGE_DOWN   = 250
 	HOME_KEY    = 249
 	END_KEY     = 248
+	DEL_KEY     = 247
 )
 
 // package level unique error for signalling to main
@@ -93,6 +94,8 @@ func ReadKey() (byte, error) {
 				switch seq[2] {
 				case '1':
 					return HOME_KEY, nil
+				case '3':
+					return DEL_KEY, nil
 				case '4':
 					return END_KEY, nil
 				case '5':
