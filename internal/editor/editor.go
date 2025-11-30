@@ -17,6 +17,8 @@ const (
 	ARROW_RIGHT = 254
 	ARROW_UP    = 253
 	ARROW_DOWN  = 252
+	PAGE_UP     = 251
+	PAGE_DOWN   = 250
 )
 
 // package level unique error for signalling to main
@@ -75,21 +77,36 @@ func ReadKey() (byte, error) {
 				seq = append(seq, buf[0])
 			}
 
-			end := seq[len(seq)-1]
+			if seq[1] == '[' {
+				if seq[2] >= '0' && seq[2] <= '9' {
+					n, err := os.Stdin.Read(seq)
+					if err != nil {
+						return 0, err
+					}
+					if n != 1 {
+						return '\x1b', nil
+					}
+					if seq[3] == '~' {
+						switch seq[2] {
+						case '5':
+							return PAGE_UP, nil
+						case '6':
+							return PAGE_DOWN, nil
+						}
+					}
+				} else {
+					switch seq[len(seq)-1] {
+					case 'A':
+						return ARROW_UP, nil
+					case 'B':
+						return ARROW_DOWN, nil
+					case 'C':
+						return ARROW_RIGHT, nil
+					case 'D':
+						return ARROW_LEFT, nil
+					}
+				}
 
-			switch end {
-			case 'A':
-				// log.Fatalf("RETURNING: %v'\n", ARROW_UP)
-				return ARROW_UP, nil
-			case 'B':
-				// log.Fatalf("RETURNING: %v'\n", ARROW_DOWN)
-				return ARROW_DOWN, nil
-			case 'C':
-				// log.Fatalf("RETURNING: %v'\n", ARROW_RIGHT)
-				return ARROW_RIGHT, nil
-			case 'D':
-				// log.Fatalf("RETURNING: %v'\n", ARROW_LEFT)
-				return ARROW_LEFT, nil
 			}
 
 			return 0, nil
