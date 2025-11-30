@@ -19,6 +19,8 @@ const (
 	ARROW_DOWN  = 252
 	PAGE_UP     = 251
 	PAGE_DOWN   = 250
+	HOME_KEY    = 249
+	END_KEY     = 248
 )
 
 // package level unique error for signalling to main
@@ -66,38 +68,51 @@ func ReadKey() (byte, error) {
 		seq = append(seq, buf[0])
 
 		// if not CSI, ignore
-		if seq[1] != '[' {
-			return 0, nil
-		}
-
-		// read next byte
-		_, err = os.Stdin.Read(buf[:])
-		if err != nil {
-			return 0, err
-		}
-		seq = append(seq, buf[0])
-
-		// if it's a digit, expect something like "ESC [ 5 ~"
-		if seq[2] >= '0' && seq[2] <= '9' {
-			// read until '~'
-			for {
-				_, err = os.Stdin.Read(buf[:])
-				if err != nil {
-					return 0, err
-				}
-				seq = append(seq, buf[0])
-				if buf[0] == '~' {
-					break
-				}
+		if seq[1] == '[' {
+			// read next byte
+			_, err = os.Stdin.Read(buf[:])
+			if err != nil {
+				return 0, err
 			}
+			seq = append(seq, buf[0])
 
+			// if it's a digit, expect something like "ESC [ 5 ~"
+			if seq[2] >= '0' && seq[2] <= '9' {
+				// read until '~'
+				for {
+					_, err = os.Stdin.Read(buf[:])
+					if err != nil {
+						return 0, err
+					}
+					seq = append(seq, buf[0])
+					if buf[0] == '~' {
+						break
+					}
+				}
+
+				switch seq[2] {
+				case '1':
+					return HOME_KEY, nil
+				case '4':
+					return END_KEY, nil
+				case '5':
+					return PAGE_UP, nil
+				case '6':
+					return PAGE_DOWN, nil
+				case '7':
+					return HOME_KEY, nil
+				case '8':
+					return END_KEY, nil
+				}
+				return 0, nil
+			}
+		} else if seq[1] == 'O' {
 			switch seq[2] {
-			case '5':
-				return PAGE_UP, nil
-			case '6':
-				return PAGE_DOWN, nil
+			case 'H':
+				return HOME_KEY, nil
+			case 'F':
+				return END_KEY, nil
 			}
-			return 0, nil
 		}
 
 		// arrow keys
@@ -112,6 +127,10 @@ func ReadKey() (byte, error) {
 			return ARROW_RIGHT, nil
 		case 'D':
 			return ARROW_LEFT, nil
+		case 'H':
+			return HOME_KEY, nil
+		case 'F':
+			return END_KEY, nil
 		}
 
 		return 0, nil
@@ -147,6 +166,12 @@ func ProcessKeyPress() error {
 	// move cursor around with arrow keys
 	case ARROW_UP, ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT:
 		moveCursor(c)
+
+	case HOME_KEY:
+		terminal.Config.CursorX = 0
+
+	case END_KEY:
+		terminal.Config.CursorX = terminal.Config.ScreenCols - 1
 	}
 
 	return nil
