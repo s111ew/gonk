@@ -111,14 +111,9 @@ func ProcessKeyPress() error {
 	// quit out if input is ctrl + c
 	case terminal.CtrlKey('q'):
 		return ErrQuit
+
 	// move cursor around with 'wasd'
-	case ARROW_UP:
-		moveCursor(c)
-	case ARROW_DOWN:
-		moveCursor(c)
-	case ARROW_LEFT:
-		moveCursor(c)
-	case ARROW_RIGHT:
+	case ARROW_UP, ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT:
 		moveCursor(c)
 	}
 
