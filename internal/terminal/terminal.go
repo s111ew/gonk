@@ -19,6 +19,13 @@ type TermConfig struct {
 	CursorY     int
 	ScreenRows  int
 	ScreenCols  int
+	NumRows     int
+	Row         Erow
+}
+
+type Erow struct {
+	Size int
+	Text string
 }
 
 type winsize struct {
