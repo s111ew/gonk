@@ -23,7 +23,7 @@ func main() {
 		return
 	}
 
-	editor.EditorOpen()
+	editor.EditorOpen(os.Args[1])
 
 	// disable 'raw' mode in user's terminal when program exits
 	defer func() {
