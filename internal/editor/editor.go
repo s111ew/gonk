@@ -1,6 +1,7 @@
 package editor
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"os"
@@ -31,7 +32,7 @@ var ErrQuit = errors.New("quit")
 // populate the user terminal config struct with window dimensions
 func InitEditor() error {
 	terminal.Config.CursorX = 0
-	terminal.Config.CursorY = 1
+	terminal.Config.CursorY = 0
 	terminal.Config.NumRows = 0
 
 	if err := terminal.GetWindowSize(&terminal.Config); err != nil {
@@ -40,13 +41,33 @@ func InitEditor() error {
 	return nil
 }
 
-func EditorOpen() {
-	line := "Hello, World"
-	lineLen := len(line)
+func EditorOpen(filename string) {
+	// Open the file
+	fp, err := os.Open(filename)
+	if err != nil {
+		panic(fmt.Sprintf("fopen: %v", err))
+	}
+	defer fp.Close()
 
-	terminal.Config.Row.Size = lineLen
-	terminal.Config.Row.Text = line
-	terminal.Config.NumRows = 1
+	// Read the first line
+	scanner := bufio.NewScanner(fp)
+	if scanner.Scan() {
+		line := scanner.Text()
+
+		// Trim newline and carriage return characters
+		line = strings.TrimRight(line, "\r\n")
+
+		// Assign to the editor structure
+		terminal.Config.Row.Size = len(line)
+		terminal.Config.Row.Text = line
+		terminal.Config.NumRows = 1
+	}
+
+	// Check for scanner error
+	if err := scanner.Err(); err != nil {
+		panic(fmt.Sprintf("getline: %v", err))
+	}
+
 }
 
 // wait for user key press and return it
@@ -207,22 +228,23 @@ func RefreshScreen() {
 
 // draw rows on user terminal
 func drawRows(buf *strings.Builder) {
-	msg := WELCOME_MSG + VERSION
 
-	padding := (terminal.Config.ScreenCols - len(msg)) / 2
-	if padding > 0 {
-		for range padding {
-			buf.WriteString(" ")
+	for y := 0; y < terminal.Config.ScreenRows; y++ {
+		if terminal.Config.NumRows == 0 && y == 0 {
+			msg := WELCOME_MSG + VERSION
+
+			padding := (terminal.Config.ScreenCols - len(msg)) / 2
+			if padding > 0 {
+				for range padding {
+					buf.WriteString(" ")
+				}
+			}
+			buf.WriteString(msg)
+			buf.WriteString("\r\n")
 		}
-	}
-	buf.WriteString(msg)
-	buf.WriteString("\x1b[K")
-	buf.WriteString("\r\n")
-
-	for y := 1; y < terminal.Config.ScreenRows; y++ {
 
 		// if line is below the text we have, then print empty space
-		if y > terminal.Config.NumRows {
+		if y >= terminal.Config.NumRows {
 			buf.WriteString("~")
 			buf.WriteString("\x1b[K")
 
@@ -232,12 +254,13 @@ func drawRows(buf *strings.Builder) {
 
 			// else print out our text row
 		} else {
-			len := terminal.Config.Row.Size
+			length := terminal.Config.Row.Size
 			row := terminal.Config.Row.Text
-			if len > terminal.Config.ScreenCols {
+			if length > terminal.Config.ScreenCols {
 				row = truncateString(row, terminal.Config.ScreenCols)
 			}
 			buf.WriteString(row)
+			buf.WriteString("\x1b[K")
 			buf.WriteString("\r\n")
 		}
 	}

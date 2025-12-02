@@ -5,4 +5,6 @@
 .vscode/
 
 # env file
-.env
+.env*
+
+*.txt
