@@ -1,1 +1,1 @@
-terminal-based text editor
+terminal-based text editor.
